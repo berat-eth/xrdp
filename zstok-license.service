@@ -1,0 +1,18 @@
+[Unit]
+Description=ZStok Lisans Sunucusu
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/zstok/license-server
+ExecStart=/usr/bin/python3 /opt/zstok/license-server/server/license_server.py --host 0.0.0.0 --port 5000
+Restart=always
+RestartSec=10
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=zstok-license
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target 
