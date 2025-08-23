@@ -17,6 +17,7 @@ import * as Animatable from 'react-native-animatable';
 import { theme } from '../utils/theme';
 import { Product } from '../data/mockData';
 import { CartController } from '../controllers/CartController';
+import { ProductReviews } from '../components/ProductReviews';
 
 const { width, height } = Dimensions.get('window');
 
@@ -33,6 +34,22 @@ export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
   const [quantity, setQuantity] = useState(1);
   const [isFavorite, setIsFavorite] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [reviews, setReviews] = useState([
+    {
+      id: '1',
+      username: 'Ahmet Y.',
+      rating: 5,
+      comment: 'Harika bir ürün, kalitesi çok iyi. Kesinlikle tavsiye ederim!',
+      date: '2 gün önce',
+    },
+    {
+      id: '2',
+      username: 'Mehmet K.',
+      rating: 4,
+      comment: 'Ürün güzel ancak kargo biraz geç geldi.',
+      date: '1 hafta önce',
+    },
+  ]);
 
   // Örnek resimler (gerçek uygulamada API'den gelecek)
   const productImages = [
@@ -85,6 +102,18 @@ export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
     if (quantity > 1) {
       setQuantity(prev => prev - 1);
     }
+  };
+
+  const handleAddReview = (rating: number, comment: string) => {
+    const newReview = {
+      id: Date.now().toString(),
+      username: 'Kullanıcı',
+      rating,
+      comment,
+      date: 'Şimdi',
+    };
+    setReviews([newReview, ...reviews]);
+    Alert.alert('Başarılı', 'Yorumunuz başarıyla eklendi!');
   };
 
   const renderFeature = (feature: string, index: number) => (
@@ -268,6 +297,15 @@ export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
                 <Text style={styles.shippingSubtitle}>Koşulsuz iade garantisi</Text>
               </View>
             </View>
+          </View>
+
+          {/* Product Reviews */}
+          <View style={styles.reviewsSection}>
+            <ProductReviews
+              productId={product.id}
+              reviews={reviews}
+              onAddReview={handleAddReview}
+            />
           </View>
         </Animatable.View>
       </ScrollView>
@@ -572,5 +610,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     marginLeft: theme.spacing.sm,
+  },
+  reviewsSection: {
+    marginTop: theme.spacing.xl,
+    marginBottom: theme.spacing.lg,
   },
 });

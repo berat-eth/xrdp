@@ -8,7 +8,9 @@ import {
   Image,
   SafeAreaView,
   Alert,
+  Share,
 } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { CartController } from '../controllers/CartController';
 import { UserController } from '../controllers/UserController';
 import { ProductController } from '../controllers/ProductController';
@@ -111,6 +113,32 @@ export const CartScreen: React.FC<CartScreenProps> = ({ navigation }) => {
       return;
     }
     navigation.navigate('Order');
+  };
+
+  const handleShareCart = async () => {
+    if (cartItems.length === 0) {
+      Alert.alert('Hata', 'Sepetiniz boş');
+      return;
+    }
+
+    const cartSummary = cartItems.map((item) => 
+      `• ${item.product?.name || 'Ürün'} (${item.quantity} adet) - ${ProductController.formatPrice(item.product?.price || 0)}`
+    ).join('\n');
+
+    const totalPrice = cartItems.reduce((sum, item) => 
+      sum + (item.product?.price || 0) * item.quantity, 0
+    );
+
+    const message = `🛒 Sepetim:\n\n${cartSummary}\n\nToplam: ${ProductController.formatPrice(totalPrice)}\n\nHemen sen de bu ürünleri incele!`;
+
+    try {
+      await Share.share({
+        message,
+        title: 'Sepetimi Paylaş',
+      });
+    } catch (error) {
+      console.error('Error sharing cart:', error);
+    }
   };
 
   const renderCartItem = ({ item }: { item: CartItem }) => {
@@ -221,12 +249,22 @@ export const CartScreen: React.FC<CartScreenProps> = ({ navigation }) => {
               </Text>
             </View>
 
-            <TouchableOpacity
-              style={styles.checkoutButton}
-              onPress={handleCheckout}
-            >
-              <Text style={styles.checkoutButtonText}>Siparişi Tamamla</Text>
-            </TouchableOpacity>
+            <View style={styles.actionButtons}>
+              <TouchableOpacity
+                style={styles.shareButton}
+                onPress={handleShareCart}
+              >
+                <MaterialCommunityIcons name="share-variant" size={20} color="#1E3A8A" />
+                <Text style={styles.shareButtonText}>Paylaş</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={styles.checkoutButton}
+                onPress={handleCheckout}
+              >
+                <Text style={styles.checkoutButtonText}>Siparişi Tamamla</Text>
+              </TouchableOpacity>
+            </View>
 
             {shipping > 0 && (
               <Text style={styles.freeShippingInfo}>
@@ -351,10 +389,32 @@ const styles = StyleSheet.create({
   totalValue: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#2E7D32',
+    color: '#1E3A8A',
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  shareButton: {
+    flex: 1,
+    flexDirection: 'row',
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#1E3A8A',
+    borderRadius: 8,
+    paddingVertical: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  shareButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1E3A8A',
   },
   checkoutButton: {
-    backgroundColor: '#2E7D32',
+    flex: 2,
+    backgroundColor: '#1E3A8A',
     borderRadius: 8,
     paddingVertical: 16,
     alignItems: 'center',
@@ -371,7 +431,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   loginButton: {
-    backgroundColor: '#2E7D32',
+    backgroundColor: '#1E3A8A',
     borderRadius: 8,
     paddingVertical: 16,
     paddingHorizontal: 32,

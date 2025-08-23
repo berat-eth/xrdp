@@ -331,6 +331,15 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
             )}
           </View>
 
+          {/* Müşteri Paneli */}
+          <TouchableOpacity 
+            style={styles.customerPanelButton}
+            onPress={() => navigation.navigate('CustomerPanel')}
+          >
+            <Text style={styles.customerPanelButtonText}>Müşteri Paneline Git</Text>
+            <Text style={styles.customerPanelSubtext}>Adresler, Cüzdan, Siparişler ve Daha Fazlası</Text>
+          </TouchableOpacity>
+
           {/* Siparişlerim */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Siparişlerim</Text>
@@ -552,5 +561,28 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: '#fff',
+  },
+  customerPanelButton: {
+    backgroundColor: '#1E3A8A',
+    borderRadius: 12,
+    padding: 20,
+    marginHorizontal: 16,
+    marginVertical: 16,
+    alignItems: 'center',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  customerPanelButtonText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  customerPanelSubtext: {
+    color: '#E0E7FF',
+    fontSize: 14,
   },
 });
