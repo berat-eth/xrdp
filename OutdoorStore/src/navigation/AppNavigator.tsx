@@ -3,6 +3,8 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { Text } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { theme } from '../utils/theme';
 
 // Screens
 import { HomeScreen } from '../views/HomeScreen';
@@ -21,18 +23,22 @@ const HomeStack = () => {
     <Stack.Navigator
       screenOptions={{
         headerStyle: {
-          backgroundColor: '#2E7D32',
+          backgroundColor: theme.colors.primary,
+          elevation: 0,
+          shadowOpacity: 0,
+          borderBottomWidth: 0,
         },
-        headerTintColor: '#fff',
+        headerTintColor: theme.colors.secondary,
         headerTitleStyle: {
-          fontWeight: 'bold',
+          fontWeight: '600',
+          fontSize: 18,
         },
       }}
     >
       <Stack.Screen 
         name="HomeMain" 
         component={HomeScreen} 
-        options={{ title: 'Outdoor Store' }}
+        options={{ title: 'Huğlu Outdoor' }}
       />
       <Stack.Screen 
         name="ProductList" 
@@ -54,11 +60,15 @@ const CartStack = () => {
     <Stack.Navigator
       screenOptions={{
         headerStyle: {
-          backgroundColor: '#2E7D32',
+          backgroundColor: theme.colors.primary,
+          elevation: 0,
+          shadowOpacity: 0,
+          borderBottomWidth: 0,
         },
-        headerTintColor: '#fff',
+        headerTintColor: theme.colors.secondary,
         headerTitleStyle: {
-          fontWeight: 'bold',
+          fontWeight: '600',
+          fontSize: 18,
         },
       }}
     >
@@ -82,11 +92,15 @@ const ProfileStack = () => {
     <Stack.Navigator
       screenOptions={{
         headerStyle: {
-          backgroundColor: '#2E7D32',
+          backgroundColor: theme.colors.primary,
+          elevation: 0,
+          shadowOpacity: 0,
+          borderBottomWidth: 0,
         },
-        headerTintColor: '#fff',
+        headerTintColor: theme.colors.secondary,
         headerTitleStyle: {
-          fontWeight: 'bold',
+          fontWeight: '600',
+          fontSize: 18,
         },
       }}
     >
@@ -104,19 +118,21 @@ const TabNavigator = () => {
   return (
     <Tab.Navigator
       screenOptions={{
-        tabBarActiveTintColor: '#2E7D32',
-        tabBarInactiveTintColor: '#666',
+        tabBarActiveTintColor: theme.colors.primary,
+        tabBarInactiveTintColor: theme.colors.textLight,
         tabBarStyle: {
-          backgroundColor: '#fff',
+          backgroundColor: theme.colors.secondary,
           borderTopWidth: 1,
-          borderTopColor: '#E0E0E0',
-          paddingBottom: 5,
-          paddingTop: 5,
-          height: 60,
+          borderTopColor: theme.colors.border,
+          paddingBottom: 8,
+          paddingTop: 8,
+          height: 65,
+          elevation: 0,
         },
         tabBarLabelStyle: {
           fontSize: 12,
-          marginBottom: 5,
+          marginBottom: 0,
+          fontWeight: '500',
         },
         headerShown: false,
       }}
@@ -127,7 +143,7 @@ const TabNavigator = () => {
         options={{
           tabBarLabel: 'Ana Sayfa',
           tabBarIcon: ({ color, size }) => (
-            <Text style={{ fontSize: size, color }}>🏠</Text>
+            <Ionicons name="home-outline" size={size} color={color} />
           ),
         }}
       />
@@ -137,15 +153,19 @@ const TabNavigator = () => {
         options={{
           tabBarLabel: 'Ürünler',
           tabBarIcon: ({ color, size }) => (
-            <Text style={{ fontSize: size, color }}>🛍️</Text>
+            <Ionicons name="grid-outline" size={size} color={color} />
           ),
           headerShown: true,
           headerStyle: {
-            backgroundColor: '#2E7D32',
+            backgroundColor: theme.colors.primary,
+            elevation: 0,
+            shadowOpacity: 0,
+            borderBottomWidth: 0,
           },
-          headerTintColor: '#fff',
+          headerTintColor: theme.colors.secondary,
           headerTitleStyle: {
-            fontWeight: 'bold',
+            fontWeight: '600',
+            fontSize: 18,
           },
           title: 'Tüm Ürünler',
         }}
@@ -156,7 +176,7 @@ const TabNavigator = () => {
         options={{
           tabBarLabel: 'Sepet',
           tabBarIcon: ({ color, size }) => (
-            <Text style={{ fontSize: size, color }}>🛒</Text>
+            <Ionicons name="cart-outline" size={size} color={color} />
           ),
         }}
       />
@@ -166,7 +186,7 @@ const TabNavigator = () => {
         options={{
           tabBarLabel: 'Profil',
           tabBarIcon: ({ color, size }) => (
-            <Text style={{ fontSize: size, color }}>👤</Text>
+            <Ionicons name="person-outline" size={size} color={color} />
           ),
         }}
       />
