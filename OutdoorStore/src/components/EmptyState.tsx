@@ -1,17 +1,17 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { theme } from '../utils/theme';
 
 interface EmptyStateProps {
   message: string;
   icon?: string;
 }
 
-export const EmptyState: React.FC<EmptyStateProps> = ({ message, icon }) => {
+export const EmptyState: React.FC<EmptyStateProps> = ({ message, icon = 'alert-circle-outline' }) => {
   return (
     <View style={styles.container}>
-      {icon && (
-        <Text style={styles.icon}>{icon}</Text>
-      )}
+      <Ionicons name={icon as any} size={64} color={theme.colors.textLight} />
       <Text style={styles.message}>{message}</Text>
     </View>
   );
@@ -22,15 +22,14 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
-  },
-  icon: {
-    fontSize: 64,
-    marginBottom: 16,
+    padding: theme.spacing.xl,
+    backgroundColor: theme.colors.background,
   },
   message: {
-    fontSize: 16,
-    color: '#666',
+    fontSize: theme.fonts.sizes.md,
+    color: theme.colors.textLight,
     textAlign: 'center',
+    marginTop: theme.spacing.md,
+    lineHeight: 24,
   },
 });

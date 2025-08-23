@@ -9,12 +9,15 @@ import {
   SafeAreaView,
   Alert,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import * as Animatable from 'react-native-animatable';
 import { CartController } from '../controllers/CartController';
 import { UserController } from '../controllers/UserController';
 import { ProductController } from '../controllers/ProductController';
 import { CartItem } from '../utils/types';
 import { LoadingIndicator } from '../components/LoadingIndicator';
 import { EmptyState } from '../components/EmptyState';
+import { theme } from '../utils/theme';
 
 interface CartScreenProps {
   navigation: any;
