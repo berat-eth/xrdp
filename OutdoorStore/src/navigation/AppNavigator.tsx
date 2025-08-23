@@ -32,7 +32,7 @@ const HomeStack = () => {
       <Stack.Screen 
         name="HomeMain" 
         component={HomeScreen} 
-        options={{ title: 'Outdoor Store' }}
+        options={{ headerShown: false }}
       />
       <Stack.Screen 
         name="ProductList" 
