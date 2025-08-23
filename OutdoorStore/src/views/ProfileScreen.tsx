@@ -139,7 +139,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
 
   const startEditing = () => {
     if (currentUser) {
-      setName(currentUser.name);
+      setName(currentUser.name || '');
       setPhone(currentUser.phone || '');
       setAddress(currentUser.address || '');
       setIsEditing(true);
@@ -309,11 +309,11 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
               <View style={styles.profileInfo}>
                 <View style={styles.infoRow}>
                   <Text style={styles.infoLabel}>Ad Soyad:</Text>
-                  <Text style={styles.infoValue}>{currentUser.name}</Text>
+                  <Text style={styles.infoValue}>{currentUser.name || ''}</Text>
                 </View>
                 <View style={styles.infoRow}>
                   <Text style={styles.infoLabel}>Email:</Text>
-                  <Text style={styles.infoValue}>{currentUser.email}</Text>
+                  <Text style={styles.infoValue}>{currentUser.email || ''}</Text>
                 </View>
                 <View style={styles.infoRow}>
                   <Text style={styles.infoLabel}>Telefon:</Text>

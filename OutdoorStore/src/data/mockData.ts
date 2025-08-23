@@ -49,7 +49,7 @@ export const categories: Category[] = [
   {
     id: '4',
     name: 'Bisiklet',
-    icon: 'bike-scooter',
+    icon: 'bike',
     color: '#9C27B0',
     description: 'Dağ bisikleti, yol bisikleti ve aksesuarlar'
   },

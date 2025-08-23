@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -24,14 +24,59 @@ interface HomeScreenProps {
   navigation: any;
 }
 
+// Slider data
+const sliderData = [
+  {
+    id: '1',
+    title: 'Kış Sezonu İndirimleri',
+    subtitle: 'Tüm kış sporları ekipmanlarında %30 indirim',
+    image: 'https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800',
+    color: ['#4A90E2', '#357ABD'],
+  },
+  {
+    id: '2',
+    title: 'Yeni Sezon Ürünleri',
+    subtitle: 'En yeni outdoor ekipmanları mağazamızda',
+    image: 'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?w=800',
+    color: ['#E74C3C', '#C0392B'],
+  },
+  {
+    id: '3',
+    title: 'Ücretsiz Kargo',
+    subtitle: '500 TL ve üzeri alışverişlerde kargo bedava',
+    image: 'https://images.unsplash.com/photo-1476611338391-6f395a0ebc7b?w=800',
+    color: ['#27AE60', '#229954'],
+  },
+];
+
 export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const scrollRef = useRef<ScrollView>(null);
 
   const popularProducts = products.filter(p => p.rating >= 4.5).slice(0, 6);
   const newProducts = products.filter(p => p.isNew).slice(0, 6);
   const saleProducts = products.filter(p => p.isSale).slice(0, 6);
+
+  // Auto scroll for slider
+  useEffect(() => {
+    const timer = setInterval(() => {
+      if (currentSlide < sliderData.length - 1) {
+        scrollRef.current?.scrollTo({
+          x: (currentSlide + 1) * width,
+          animated: true,
+        });
+        setCurrentSlide(currentSlide + 1);
+      } else {
+        scrollRef.current?.scrollTo({ x: 0, animated: true });
+        setCurrentSlide(0);
+      }
+    }, 3000);
+
+    return () => clearInterval(timer);
+  }, [currentSlide]);
 
   const handleProductPress = (product: Product) => {
     navigation.navigate('ProductDetail', { product });
@@ -125,11 +170,17 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           style={styles.header}
         >
           <View style={styles.headerContent}>
-            <View>
-              <Text style={styles.welcomeText}>Hoş Geldiniz!</Text>
-              <Text style={styles.headerTitle}>Outdoor Maceranız Başlasın</Text>
+            <View style={styles.logoContainer}>
+              <Image 
+                source={{ uri: 'https://cdn-icons-png.flaticon.com/512/3369/3369030.png' }} 
+                style={styles.logo}
+              />
+              <Text style={styles.logoText}>Outdoor Store</Text>
             </View>
-            <TouchableOpacity style={styles.cartButton}>
+            <TouchableOpacity 
+              style={styles.cartButton}
+              onPress={() => navigation.navigate('Cart')}
+            >
               <Ionicons name="cart-outline" size={28} color="white" />
             </TouchableOpacity>
           </View>
@@ -147,6 +198,69 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
             />
           </View>
         </LinearGradient>
+
+        {/* Image Slider */}
+        <View style={styles.sliderContainer}>
+          <ScrollView
+            ref={scrollRef}
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            onMomentumScrollEnd={(event) => {
+              const slideIndex = Math.round(event.nativeEvent.contentOffset.x / width);
+              setCurrentSlide(slideIndex);
+            }}
+          >
+            {sliderData.map((slide) => (
+              <LinearGradient
+                key={slide.id}
+                colors={slide.color}
+                style={styles.slide}
+              >
+                <Image source={{ uri: slide.image }} style={styles.slideImage} />
+                <View style={styles.slideContent}>
+                  <Text style={styles.slideTitle}>{slide.title}</Text>
+                  <Text style={styles.slideSubtitle}>{slide.subtitle}</Text>
+                </View>
+              </LinearGradient>
+            ))}
+          </ScrollView>
+          <View style={styles.pagination}>
+            {sliderData.map((_, index) => (
+              <View
+                key={index}
+                style={[
+                  styles.paginationDot,
+                  currentSlide === index && styles.paginationDotActive,
+                ]}
+              />
+            ))}
+          </View>
+        </View>
+
+        {/* Quick Action Buttons */}
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false}
+          style={styles.quickActionsContainer}
+        >
+          <TouchableOpacity style={[styles.quickActionButton, { backgroundColor: '#FF5722' }]}>
+            <MaterialCommunityIcons name="flash" size={24} color="white" />
+            <Text style={styles.quickActionText}>Flaş İndirimler</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.quickActionButton, { backgroundColor: '#E91E63' }]}>
+            <MaterialCommunityIcons name="gift" size={24} color="white" />
+            <Text style={styles.quickActionText}>Hediye Fırsatları</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.quickActionButton, { backgroundColor: '#9C27B0' }]}>
+            <MaterialCommunityIcons name="trending-up" size={24} color="white" />
+            <Text style={styles.quickActionText}>Çok Satanlar</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.quickActionButton, { backgroundColor: '#4CAF50' }]}>
+            <MaterialCommunityIcons name="shield-check" size={24} color="white" />
+            <Text style={styles.quickActionText}>Güvenli Alışveriş</Text>
+          </TouchableOpacity>
+        </ScrollView>
 
         {/* Kategoriler */}
         <View style={styles.section}>
@@ -208,31 +322,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
             contentContainerStyle={styles.productList}
           />
         </View>
-
-        {/* Banner */}
-        <Animatable.View animation="fadeIn" delay={300} style={styles.bannerContainer}>
-          <LinearGradient
-            colors={[theme.colors.secondary, theme.colors.accent]}
-            style={styles.banner}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-          >
-            <View style={styles.bannerContent}>
-              <Text style={styles.bannerTitle}>Kış Sezonu Başladı!</Text>
-              <Text style={styles.bannerSubtitle}>Kış sporları ekipmanlarında %25 indirim</Text>
-              <TouchableOpacity 
-                style={styles.bannerButton}
-                onPress={() => handleCategoryPress('6')}
-              >
-                <Text style={styles.bannerButtonText}>Alışverişe Başla</Text>
-              </TouchableOpacity>
-            </View>
-            <Image
-              source={{ uri: 'https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=400' }}
-              style={styles.bannerImage}
-            />
-          </LinearGradient>
-        </Animatable.View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -247,8 +336,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.md,
     paddingTop: theme.spacing.lg,
     paddingBottom: theme.spacing.xl,
-    borderBottomLeftRadius: theme.borderRadius.xl,
-    borderBottomRightRadius: theme.borderRadius.xl,
   },
   headerContent: {
     flexDirection: 'row',
@@ -256,15 +343,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: theme.spacing.md,
   },
-  welcomeText: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.8)',
+  logoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  headerTitle: {
+  logo: {
+    width: 40,
+    height: 40,
+    marginRight: theme.spacing.sm,
+  },
+  logoText: {
     fontSize: 24,
     fontWeight: 'bold',
     color: 'white',
-    marginTop: 4,
   },
   cartButton: {
     width: 48,
@@ -288,6 +379,82 @@ const styles = StyleSheet.create({
     marginLeft: theme.spacing.sm,
     fontSize: 16,
     color: theme.colors.text,
+  },
+  sliderContainer: {
+    height: 200,
+    marginTop: theme.spacing.md,
+  },
+  slide: {
+    width: width,
+    height: 200,
+    position: 'relative',
+  },
+  slideImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+    position: 'absolute',
+    opacity: 0.6,
+  },
+  slideContent: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: theme.spacing.xl,
+  },
+  slideTitle: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: 'white',
+    textAlign: 'center',
+    marginBottom: theme.spacing.sm,
+    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    textShadowOffset: { width: -1, height: 1 },
+    textShadowRadius: 10,
+  },
+  slideSubtitle: {
+    fontSize: 16,
+    color: 'white',
+    textAlign: 'center',
+    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    textShadowOffset: { width: -1, height: 1 },
+    textShadowRadius: 10,
+  },
+  pagination: {
+    flexDirection: 'row',
+    position: 'absolute',
+    bottom: 10,
+    alignSelf: 'center',
+  },
+  paginationDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+    marginHorizontal: 4,
+  },
+  paginationDotActive: {
+    backgroundColor: 'white',
+    width: 20,
+  },
+  quickActionsContainer: {
+    paddingVertical: theme.spacing.md,
+    paddingHorizontal: theme.spacing.md,
+  },
+  quickActionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+    borderRadius: theme.borderRadius.round,
+    marginRight: theme.spacing.sm,
+    ...theme.shadows.sm,
+  },
+  quickActionText: {
+    color: 'white',
+    marginLeft: theme.spacing.xs,
+    fontWeight: '600',
+    fontSize: 14,
   },
   section: {
     marginTop: theme.spacing.lg,
@@ -420,50 +587,5 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: theme.colors.primary,
-  },
-  bannerContainer: {
-    margin: theme.spacing.md,
-    marginTop: theme.spacing.xl,
-    marginBottom: theme.spacing.xxl,
-  },
-  banner: {
-    borderRadius: theme.borderRadius.lg,
-    padding: theme.spacing.lg,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    ...theme.shadows.lg,
-  },
-  bannerContent: {
-    flex: 1,
-  },
-  bannerTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: 'white',
-    marginBottom: theme.spacing.xs,
-  },
-  bannerSubtitle: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.9)',
-    marginBottom: theme.spacing.md,
-  },
-  bannerButton: {
-    backgroundColor: 'white',
-    paddingHorizontal: theme.spacing.lg,
-    paddingVertical: theme.spacing.sm,
-    borderRadius: theme.borderRadius.round,
-    alignSelf: 'flex-start',
-  },
-  bannerButtonText: {
-    color: theme.colors.secondary,
-    fontWeight: 'bold',
-    fontSize: 14,
-  },
-  bannerImage: {
-    width: 100,
-    height: 100,
-    borderRadius: theme.borderRadius.md,
-    marginLeft: theme.spacing.md,
   },
 });
