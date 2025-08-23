@@ -99,6 +99,34 @@ const ProfileStack = () => {
   );
 };
 
+// Stack Navigator for Products
+const ProductsStack = () => {
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerStyle: {
+          backgroundColor: '#2E7D32',
+        },
+        headerTintColor: '#fff',
+        headerTitleStyle: {
+          fontWeight: 'bold',
+        },
+      }}
+    >
+      <Stack.Screen 
+        name="ProductsMain" 
+        component={ProductListScreen} 
+        options={{ title: 'Tüm Ürünler' }}
+      />
+      <Stack.Screen 
+        name="ProductDetail" 
+        component={ProductDetailScreen}
+        options={{ title: 'Ürün Detayı' }}
+      />
+    </Stack.Navigator>
+  );
+};
+
 // Tab Navigator
 const TabNavigator = () => {
   return (
@@ -133,21 +161,12 @@ const TabNavigator = () => {
       />
       <Tab.Screen
         name="Products"
-        component={ProductListScreen}
+        component={ProductsStack}
         options={{
           tabBarLabel: 'Ürünler',
           tabBarIcon: ({ color, size }) => (
             <Text style={{ fontSize: size, color }}>🛍️</Text>
           ),
-          headerShown: true,
-          headerStyle: {
-            backgroundColor: '#2E7D32',
-          },
-          headerTintColor: '#fff',
-          headerTitleStyle: {
-            fontWeight: 'bold',
-          },
-          title: 'Tüm Ürünler',
         }}
       />
       <Tab.Screen
