@@ -16,6 +16,7 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Animatable from 'react-native-animatable';
 import { theme } from '../utils/theme';
 import { Product } from '../data/mockData';
+import { CartController } from '../controllers/CartController';
 
 const { width, height } = Dimensions.get('window');
 
@@ -40,19 +41,29 @@ export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
     product.image,
   ];
 
-  const handleAddToCart = () => {
-    // Sepete ekleme işlemi
-    Alert.alert(
-      'Başarılı',
-      `${quantity} adet ${product.name} sepete eklendi!`,
-      [
-        { text: 'Alışverişe Devam Et', style: 'cancel' },
-        { 
-          text: 'Sepete Git', 
-          onPress: () => navigation.navigate('Cart')
-        }
-      ]
-    );
+  const handleAddToCart = async () => {
+    try {
+      // Gerçek sepete ekleme işlemi
+      const result = await CartController.addToCart(1, product.id, quantity); // userId: 1 (varsayılan kullanıcı)
+      
+      if (result.success) {
+        Alert.alert(
+          'Başarılı',
+          `${quantity} adet ${product.name} sepete eklendi!`,
+          [
+            { text: 'Alışverişe Devam Et', style: 'cancel' },
+            { 
+              text: 'Sepete Git', 
+              onPress: () => navigation.navigate('Cart')
+            }
+          ]
+        );
+      } else {
+        Alert.alert('Hata', result.message);
+      }
+    } catch (error) {
+      Alert.alert('Hata', 'Ürün sepete eklenirken bir hata oluştu');
+    }
   };
 
   const handleShare = async () => {
