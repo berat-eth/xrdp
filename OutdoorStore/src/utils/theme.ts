@@ -1,21 +1,21 @@
 export const theme = {
   colors: {
-    primary: '#1565C0', // Lacivert mavi
-    secondary: '#0D47A1', // Koyu lacivert
-    accent: '#42A5F5', // Açık mavi
-    background: '#F5F7FA',
+    primary: '#1E3A8A', // Navy blue
+    secondary: '#1E40AF', // Dark navy blue
+    accent: '#3B82F6', // Light blue accent
+    background: '#FFFFFF',
     surface: '#FFFFFF',
-    text: '#1A237E',
-    textSecondary: '#5C6BC0',
-    error: '#D32F2F',
-    success: '#388E3C',
-    warning: '#F57C00',
+    text: '#1E3A8A',
+    textSecondary: '#64748B',
+    error: '#DC2626',
+    success: '#059669',
+    warning: '#F59E0B',
     cardBackground: '#FFFFFF',
-    headerBackground: '#0D47A1', // Koyu lacivert
+    headerBackground: '#1E3A8A', // Navy blue
     headerText: '#FFFFFF',
     tabBarBackground: '#FFFFFF',
-    tabBarActive: '#1565C0', // Lacivert mavi
-    tabBarInactive: '#90A4AE',
+    tabBarActive: '#1E3A8A', // Navy blue
+    tabBarInactive: '#94A3B8',
     shadow: '#000000',
   },
   spacing: {

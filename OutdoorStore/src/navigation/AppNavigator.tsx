@@ -11,6 +11,11 @@ import { ProductDetailScreen } from '../views/ProductDetailScreen';
 import { CartScreen } from '../views/CartScreen';
 import { ProfileScreen } from '../views/ProfileScreen';
 import { OrderScreen } from '../views/OrderScreen';
+import { CustomerPanelScreen } from '../views/CustomerPanel/CustomerPanelScreen';
+import { AddressManagementScreen } from '../views/CustomerPanel/AddressManagementScreen';
+import { WalletScreen } from '../views/CustomerPanel/WalletScreen';
+import { OrderHistoryScreen } from '../views/CustomerPanel/OrderHistoryScreen';
+import { CargoTrackingScreen } from '../views/CustomerPanel/CargoTrackingScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -21,7 +26,7 @@ const HomeStack = () => {
     <Stack.Navigator
       screenOptions={{
         headerStyle: {
-          backgroundColor: '#2E7D32',
+          backgroundColor: '#1E3A8A',
         },
         headerTintColor: '#fff',
         headerTitleStyle: {
@@ -54,7 +59,7 @@ const CartStack = () => {
     <Stack.Navigator
       screenOptions={{
         headerStyle: {
-          backgroundColor: '#2E7D32',
+          backgroundColor: '#1E3A8A',
         },
         headerTintColor: '#fff',
         headerTitleStyle: {
@@ -82,7 +87,7 @@ const ProfileStack = () => {
     <Stack.Navigator
       screenOptions={{
         headerStyle: {
-          backgroundColor: '#2E7D32',
+          backgroundColor: '#1E3A8A',
         },
         headerTintColor: '#fff',
         headerTitleStyle: {
@@ -95,6 +100,31 @@ const ProfileStack = () => {
         component={ProfileScreen} 
         options={{ title: 'Profilim' }}
       />
+      <Stack.Screen 
+        name="CustomerPanel" 
+        component={CustomerPanelScreen} 
+        options={{ title: 'Müşteri Paneli' }}
+      />
+      <Stack.Screen 
+        name="AddressManagement" 
+        component={AddressManagementScreen} 
+        options={{ title: 'Adreslerim' }}
+      />
+      <Stack.Screen 
+        name="Wallet" 
+        component={WalletScreen} 
+        options={{ title: 'Cüzdanım' }}
+      />
+      <Stack.Screen 
+        name="OrderHistory" 
+        component={OrderHistoryScreen} 
+        options={{ title: 'Siparişlerim' }}
+      />
+      <Stack.Screen 
+        name="CargoTracking" 
+        component={CargoTrackingScreen} 
+        options={{ title: 'Kargo Takibi' }}
+      />
     </Stack.Navigator>
   );
 };
@@ -104,8 +134,8 @@ const TabNavigator = () => {
   return (
     <Tab.Navigator
       screenOptions={{
-        tabBarActiveTintColor: '#2E7D32',
-        tabBarInactiveTintColor: '#666',
+        tabBarActiveTintColor: '#1E3A8A',
+        tabBarInactiveTintColor: '#94A3B8',
         tabBarStyle: {
           backgroundColor: '#fff',
           borderTopWidth: 1,
@@ -141,7 +171,7 @@ const TabNavigator = () => {
           ),
           headerShown: true,
           headerStyle: {
-            backgroundColor: '#2E7D32',
+            backgroundColor: '#1E3A8A',
           },
           headerTintColor: '#fff',
           headerTitleStyle: {

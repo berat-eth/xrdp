@@ -17,6 +17,7 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Animatable from 'react-native-animatable';
 import { theme } from '../utils/theme';
 import { categories, products, Category, Product } from '../data/mockData';
+import { HamburgerMenu } from '../components/HamburgerMenu';
 
 const { width } = Dimensions.get('window');
 
@@ -166,17 +167,16 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Header */}
         <LinearGradient
-          colors={[theme.colors.primary, theme.colors.headerBackground]}
+          colors={['#1E3A8A', '#2563EB']}
           style={styles.header}
         >
           <View style={styles.headerContent}>
-            <View style={styles.logoContainer}>
-              <Image 
-                source={{ uri: 'https://cdn-icons-png.flaticon.com/512/3369/3369030.png' }} 
-                style={styles.logo}
-              />
-              <Text style={styles.logoText}>Outdoor Store</Text>
-            </View>
+            <HamburgerMenu 
+              categories={categories}
+              onCategoryPress={(categoryId) => {
+                navigation.navigate('ProductList', { categoryId });
+              }}
+            />
             <TouchableOpacity 
               style={styles.cartButton}
               onPress={() => navigation.navigate('Cart')}
