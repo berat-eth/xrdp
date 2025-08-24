@@ -10,12 +10,13 @@ import {
   Dimensions,
   Share,
   Alert,
+  FlatList,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Animatable from 'react-native-animatable';
 import { theme } from '../utils/theme';
-import { Product } from '../data/mockData';
+import { Product, ProductVariant } from '../data/mockData';
 
 const { width, height } = Dimensions.get('window');
 
@@ -32,15 +33,27 @@ export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
   const [quantity, setQuantity] = useState(1);
   const [isFavorite, setIsFavorite] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [selectedColor, setSelectedColor] = useState<string | null>(null);
+  const [selectedSize, setSelectedSize] = useState<string | null>(null);
 
-  // Örnek resimler (gerçek uygulamada API'den gelecek)
-  const productImages = [
-    product.image,
-    product.image,
-    product.image,
-  ];
+  // Varyasyonları tipine göre ayır
+  const colorVariants = product.variants?.filter(v => v.type === 'color') || [];
+  const sizeVariants = product.variants?.filter(v => v.type === 'size') || [];
+
+  // Ürün resimlerini al
+  const productImages = product.images || [product.image, product.image, product.image];
 
   const handleAddToCart = () => {
+    // Varyasyon kontrolü
+    if (colorVariants.length > 0 && !selectedColor) {
+      Alert.alert('Uyarı', 'Lütfen bir renk seçiniz.');
+      return;
+    }
+    if (sizeVariants.length > 0 && !selectedSize) {
+      Alert.alert('Uyarı', 'Lütfen bir beden seçiniz.');
+      return;
+    }
+
     // Sepete ekleme işlemi
     Alert.alert(
       'Başarılı',
@@ -219,6 +232,69 @@ export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
               {product.inStock ? 'Stokta var' : 'Stokta yok'}
             </Text>
           </View>
+
+          {/* Color Variants */}
+          {colorVariants.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Renk Seçimi</Text>
+              <View style={styles.variantContainer}>
+                {colorVariants.map((variant) => (
+                  <TouchableOpacity
+                    key={variant.value}
+                    style={[
+                      styles.colorVariant,
+                      selectedColor === variant.value && styles.selectedColorVariant,
+                      { backgroundColor: variant.value }
+                    ]}
+                    onPress={() => setSelectedColor(variant.value)}
+                    activeOpacity={0.8}
+                  >
+                    {selectedColor === variant.value && (
+                      <Ionicons name="checkmark" size={16} color="#FFF" />
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </View>
+              {selectedColor && (
+                <Text style={styles.selectedVariantText}>
+                  Seçilen: {colorVariants.find(v => v.value === selectedColor)?.name}
+                </Text>
+              )}
+            </View>
+          )}
+
+          {/* Size Variants */}
+          {sizeVariants.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Beden Seçimi</Text>
+              <View style={styles.variantContainer}>
+                {sizeVariants.map((variant) => (
+                  <TouchableOpacity
+                    key={variant.value}
+                    style={[
+                      styles.sizeVariant,
+                      selectedSize === variant.value && styles.selectedSizeVariant,
+                      variant.stock === 0 && styles.outOfStockVariant
+                    ]}
+                    onPress={() => variant.stock > 0 && setSelectedSize(variant.value)}
+                    activeOpacity={0.8}
+                    disabled={variant.stock === 0}
+                  >
+                    <Text style={[
+                      styles.sizeText,
+                      selectedSize === variant.value && styles.selectedSizeText,
+                      variant.stock === 0 && styles.outOfStockText
+                    ]}>
+                      {variant.name}
+                    </Text>
+                    {variant.stock === 0 && (
+                      <View style={styles.outOfStockLine} />
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          )}
 
           {/* Description */}
           <View style={styles.section}>
@@ -561,5 +637,76 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     marginLeft: theme.spacing.sm,
+  },
+  variantContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: theme.spacing.sm,
+    marginTop: theme.spacing.sm,
+  },
+  colorVariant: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: theme.colors.border,
+    marginRight: theme.spacing.sm,
+    marginBottom: theme.spacing.sm,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.15,
+    shadowRadius: 2,
+  },
+  selectedColorVariant: {
+    borderColor: theme.colors.primary,
+    borderWidth: 3,
+  },
+  sizeVariant: {
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+    borderRadius: theme.borderRadius.md,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: theme.colors.border,
+    marginRight: theme.spacing.sm,
+    marginBottom: theme.spacing.sm,
+    backgroundColor: theme.colors.surface,
+  },
+  selectedSizeVariant: {
+    borderColor: theme.colors.primary,
+    backgroundColor: theme.colors.primary + '10',
+  },
+  outOfStockVariant: {
+    opacity: 0.5,
+    backgroundColor: theme.colors.background,
+  },
+  sizeText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: theme.colors.text,
+  },
+  selectedSizeText: {
+    color: theme.colors.primary,
+  },
+  outOfStockText: {
+    color: theme.colors.error,
+  },
+  outOfStockLine: {
+    position: 'absolute',
+    bottom: -5,
+    left: 0,
+    right: 0,
+    height: 2,
+    backgroundColor: theme.colors.error,
+  },
+  selectedVariantText: {
+    fontSize: 12,
+    color: theme.colors.textLight,
+    marginTop: theme.spacing.xs,
+    fontStyle: 'italic',
   },
 });
