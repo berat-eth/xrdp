@@ -11,6 +11,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { UserController } from '../controllers/UserController';
 import { OrderController } from '../controllers/OrderController';
 import { ProductController } from '../controllers/ProductController';
@@ -109,7 +110,19 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
             await UserController.logout();
             setCurrentUser(null);
             setOrders([]);
+            
+            // AsyncStorage'dan token'ı temizle
+            await AsyncStorage.removeItem('userToken');
+            await AsyncStorage.removeItem('userEmail');
+            await AsyncStorage.removeItem('userName');
+            
             Alert.alert('Başarılı', 'Çıkış yapıldı');
+            
+            // Navigation'ı yeniden başlat
+            navigation.reset({
+              index: 0,
+              routes: [{ name: 'Login' }],
+            });
           },
         },
       ]
