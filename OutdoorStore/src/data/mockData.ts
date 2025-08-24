@@ -6,6 +6,14 @@ export interface Category {
   description: string;
 }
 
+export interface ProductVariant {
+  type: 'color' | 'size';
+  name: string;
+  value: string;
+  stock: number;
+  priceModifier?: number; // Ek fiyat
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -14,6 +22,7 @@ export interface Product {
   price: number;
   originalPrice?: number;
   image: string;
+  images?: string[]; // Birden fazla resim
   description: string;
   rating: number;
   reviews: number;
@@ -22,6 +31,7 @@ export interface Product {
   isSale?: boolean;
   brand: string;
   features: string[];
+  variants?: ProductVariant[]; // Varyasyonlar
 }
 
 export const categories: Category[] = [
@@ -107,13 +117,23 @@ export const products: Product[] = [
     price: 2499.99,
     originalPrice: 3199.99,
     image: 'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?w=800',
+    images: [
+      'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?w=800',
+      'https://images.unsplash.com/photo-1487730116645-74489c95b41b?w=800',
+      'https://images.unsplash.com/photo-1510672981848-a1c4f1cb5ccf?w=800'
+    ],
     description: '4 kişilik geniş aile çadırı. Su geçirmez ve dayanıklı yapı.',
     rating: 4.5,
     reviews: 234,
     inStock: true,
     isSale: true,
     brand: 'Coleman',
-    features: ['4 kişilik kapasite', 'Su geçirmez', 'Kolay kurulum', 'UV korumalı']
+    features: ['4 kişilik kapasite', 'Su geçirmez', 'Kolay kurulum', 'UV korumalı'],
+    variants: [
+      { type: 'color', name: 'Yeşil', value: '#4CAF50', stock: 15 },
+      { type: 'color', name: 'Turuncu', value: '#FF5722', stock: 10 },
+      { type: 'color', name: 'Mavi', value: '#2196F3', stock: 8 }
+    ]
   },
   {
     id: '2',
@@ -590,12 +610,28 @@ export const products: Product[] = [
     categoryId: '9',
     price: 4999.99,
     image: 'https://images.unsplash.com/photo-1566479179817-0ddb5fa87cd9?w=800',
+    images: [
+      'https://images.unsplash.com/photo-1566479179817-0ddb5fa87cd9?w=800',
+      'https://images.unsplash.com/photo-1556906781-9a412961c28c?w=800',
+      'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=800'
+    ],
     description: '800 dolgu gücü kaz tüyü mont.',
     rating: 4.8,
     reviews: 567,
     inStock: true,
     brand: 'Patagonia',
-    features: ['800 fill power', 'DWR kaplama', 'Geri dönüşümlü']
+    features: ['800 fill power', 'DWR kaplama', 'Geri dönüşümlü'],
+    variants: [
+      { type: 'size', name: 'XS', value: 'XS', stock: 5 },
+      { type: 'size', name: 'S', value: 'S', stock: 10 },
+      { type: 'size', name: 'M', value: 'M', stock: 15 },
+      { type: 'size', name: 'L', value: 'L', stock: 12 },
+      { type: 'size', name: 'XL', value: 'XL', stock: 8 },
+      { type: 'size', name: 'XXL', value: 'XXL', stock: 4 },
+      { type: 'color', name: 'Siyah', value: '#000000', stock: 30 },
+      { type: 'color', name: 'Lacivert', value: '#000080', stock: 20 },
+      { type: 'color', name: 'Kırmızı', value: '#FF0000', stock: 10 }
+    ]
   },
   {
     id: '34',
@@ -604,13 +640,28 @@ export const products: Product[] = [
     categoryId: '9',
     price: 12999.99,
     image: 'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=800',
+    images: [
+      'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=800',
+      'https://images.unsplash.com/photo-1527004760263-cb09f9ca9109?w=800',
+      'https://images.unsplash.com/photo-1495105787522-5334e3ffa0ef?w=800'
+    ],
     description: 'Gore-Tex Pro shell ceket.',
     rating: 4.9,
     reviews: 234,
     inStock: true,
     isNew: true,
     brand: 'Arc\'teryx',
-    features: ['Gore-Tex Pro', '3 katman', 'Kask uyumlu']
+    features: ['Gore-Tex Pro', '3 katman', 'Kask uyumlu'],
+    variants: [
+      { type: 'size', name: 'S', value: 'S', stock: 3 },
+      { type: 'size', name: 'M', value: 'M', stock: 5 },
+      { type: 'size', name: 'L', value: 'L', stock: 7 },
+      { type: 'size', name: 'XL', value: 'XL', stock: 4 },
+      { type: 'size', name: 'XXL', value: 'XXL', stock: 2 },
+      { type: 'color', name: 'Siyah', value: '#000000', stock: 10 },
+      { type: 'color', name: 'Dynasty Yeşil', value: '#2E7D32', stock: 8 },
+      { type: 'color', name: 'Kingfisher Mavi', value: '#0288D1', stock: 3 }
+    ]
   },
   {
     id: '35',
