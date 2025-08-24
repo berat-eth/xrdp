@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
-import { Text } from 'react-native';
+import { Text, ActivityIndicator, View } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Screens
 import { HomeScreen } from '../views/HomeScreen';
@@ -11,9 +12,26 @@ import { ProductDetailScreen } from '../views/ProductDetailScreen';
 import { CartScreen } from '../views/CartScreen';
 import { ProfileScreen } from '../views/ProfileScreen';
 import { OrderScreen } from '../views/OrderScreen';
+import { LoginScreen } from '../views/LoginScreen';
+import { RegisterScreen } from '../views/RegisterScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
+const AuthStack = createStackNavigator();
+
+// Auth Stack Navigator
+const AuthNavigator = () => {
+  return (
+    <AuthStack.Navigator
+      screenOptions={{
+        headerShown: false,
+      }}
+    >
+      <AuthStack.Screen name="Login" component={LoginScreen} />
+      <AuthStack.Screen name="Register" component={RegisterScreen} />
+    </AuthStack.Navigator>
+  );
+};
 
 // Stack Navigator for Home
 const HomeStack = () => {
@@ -174,10 +192,45 @@ const TabNavigator = () => {
   );
 };
 
+// Main Stack Navigator
+const MainStack = () => {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="Main" component={TabNavigator} />
+    </Stack.Navigator>
+  );
+};
+
 export const AppNavigator = () => {
+  const [isLoading, setIsLoading] = useState(true);
+  const [userToken, setUserToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    checkAuthStatus();
+  }, []);
+
+  const checkAuthStatus = async () => {
+    try {
+      const token = await AsyncStorage.getItem('userToken');
+      setUserToken(token);
+    } catch (error) {
+      console.error('Auth check error:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#2E7D32" />
+      </View>
+    );
+  }
+
   return (
     <NavigationContainer>
-      <TabNavigator />
+      {userToken ? <MainStack /> : <AuthNavigator />}
     </NavigationContainer>
   );
 };
