@@ -14,10 +14,10 @@ export interface Product {
 
 // User Types
 export interface User {
-  id: number;
+  id: string;  // Changed to string for UUID
   name: string;
   email: string;
-  password: string;
+  password?: string;  // Made optional as Supabase handles auth
   phone: string;
   address: string;
   createdAt: string;
@@ -28,14 +28,14 @@ export interface CartItem {
   id: number;
   productId: number;
   quantity: number;
-  userId: number;
+  userId: string;  // Changed to string for UUID
   product?: Product;
 }
 
 // Order Types
 export interface Order {
   id: number;
-  userId: number;
+  userId: string;  // Changed to string for UUID
   totalAmount: number;
   status: OrderStatus;
   createdAt: string;

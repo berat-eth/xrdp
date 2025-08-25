@@ -1,79 +1,28 @@
-import * as SQLite from 'expo-sqlite';
+import { supabase } from './supabase';
 
-const db = SQLite.openDatabaseSync('outdoor_store.db');
-
+// This function is no longer needed for table creation as tables are created in Supabase
+// But we keep it for compatibility and to show initialization messages
 export const initDatabase = async () => {
   try {
-    // Users tablosu
-    await db.execAsync(`
-      CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        email TEXT UNIQUE NOT NULL,
-        password TEXT NOT NULL,
-        phone TEXT,
-        address TEXT,
-        createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
-      );
-    `);
+    // Check if we can connect to Supabase
+    const { data, error } = await supabase
+      .from('products')
+      .select('count')
+      .limit(1);
 
-    // Products tablosu
-    await db.execAsync(`
-      CREATE TABLE IF NOT EXISTS products (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        description TEXT,
-        price REAL NOT NULL,
-        category TEXT NOT NULL,
-        image TEXT,
-        stock INTEGER DEFAULT 0,
-        brand TEXT,
-        rating REAL DEFAULT 0,
-        reviewCount INTEGER DEFAULT 0
-      );
-    `);
+    if (error) {
+      console.error('Error connecting to Supabase:', error);
+      console.log('Please make sure you have:');
+      console.log('1. Created a Supabase project');
+      console.log('2. Run the SQL schema in supabase_schema.sql');
+      console.log('3. Updated SUPABASE_URL and SUPABASE_ANON_KEY in your environment');
+      return;
+    }
 
-    // Cart tablosu
-    await db.execAsync(`
-      CREATE TABLE IF NOT EXISTS cart (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        userId INTEGER NOT NULL,
-        productId INTEGER NOT NULL,
-        quantity INTEGER NOT NULL,
-        FOREIGN KEY (userId) REFERENCES users(id),
-        FOREIGN KEY (productId) REFERENCES products(id)
-      );
-    `);
-
-    // Orders tablosu
-    await db.execAsync(`
-      CREATE TABLE IF NOT EXISTS orders (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        userId INTEGER NOT NULL,
-        totalAmount REAL NOT NULL,
-        status TEXT DEFAULT 'pending',
-        shippingAddress TEXT NOT NULL,
-        paymentMethod TEXT NOT NULL,
-        createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (userId) REFERENCES users(id)
-      );
-    `);
-
-    // Order Items tablosu
-    await db.execAsync(`
-      CREATE TABLE IF NOT EXISTS order_items (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        orderId INTEGER NOT NULL,
-        productId INTEGER NOT NULL,
-        quantity INTEGER NOT NULL,
-        price REAL NOT NULL,
-        FOREIGN KEY (orderId) REFERENCES orders(id),
-        FOREIGN KEY (productId) REFERENCES products(id)
-      );
-    `);
-
-    // Örnek ürünleri ekle
-    await insertSampleProducts();
+    console.log('Successfully connected to Supabase');
+    
+    // Check if sample products need to be inserted
+    await checkAndInsertSampleProducts();
     
     console.log('Database initialized successfully');
   } catch (error) {
@@ -81,11 +30,22 @@ export const initDatabase = async () => {
   }
 };
 
-const insertSampleProducts = async () => {
+const checkAndInsertSampleProducts = async () => {
   try {
-    const count = await db.getFirstAsync<{ count: number }>('SELECT COUNT(*) as count FROM products');
-    
-    if (count && count.count === 0) {
+    // Check if products table is empty
+    const { count, error: countError } = await supabase
+      .from('products')
+      .select('*', { count: 'exact', head: true });
+
+    if (countError) {
+      console.error('Error checking product count:', countError);
+      return;
+    }
+
+    // If no products exist, insert sample products
+    if (count === 0) {
+      console.log('No products found, inserting sample products...');
+      
       const sampleProducts = [
         {
           name: 'Gore-Tex Pro Ceket',
@@ -96,7 +56,7 @@ const insertSampleProducts = async () => {
           stock: 15,
           brand: 'The North Face',
           rating: 4.8,
-          reviewCount: 234
+          review_count: 234
         },
         {
           name: 'Trekking Pantolonu',
@@ -107,7 +67,7 @@ const insertSampleProducts = async () => {
           stock: 25,
           brand: 'Columbia',
           rating: 4.5,
-          reviewCount: 156
+          review_count: 156
         },
         {
           name: 'Vibram Trekking Botu',
@@ -118,7 +78,7 @@ const insertSampleProducts = async () => {
           stock: 20,
           brand: 'Salomon',
           rating: 4.9,
-          reviewCount: 412
+          review_count: 412
         },
         {
           name: '65L Sırt Çantası',
@@ -129,7 +89,7 @@ const insertSampleProducts = async () => {
           stock: 12,
           brand: 'Deuter',
           rating: 4.7,
-          reviewCount: 89
+          review_count: 89
         },
         {
           name: '4 Mevsim Çadır',
@@ -140,7 +100,7 @@ const insertSampleProducts = async () => {
           stock: 8,
           brand: 'MSR',
           rating: 4.6,
-          reviewCount: 67
+          review_count: 67
         },
         {
           name: '-15°C Uyku Tulumu',
@@ -151,24 +111,35 @@ const insertSampleProducts = async () => {
           stock: 18,
           brand: 'Marmot',
           rating: 4.4,
-          reviewCount: 143
+          review_count: 143
         }
       ];
 
-      for (const product of sampleProducts) {
-        await db.runAsync(
-          `INSERT INTO products (name, description, price, category, image, stock, brand, rating, reviewCount) 
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-          [product.name, product.description, product.price, product.category, 
-           product.image, product.stock, product.brand, product.rating, product.reviewCount]
-        );
+      const { error: insertError } = await supabase
+        .from('products')
+        .insert(sampleProducts);
+
+      if (insertError) {
+        console.error('Error inserting sample products:', insertError);
+      } else {
+        console.log('Sample products inserted successfully');
       }
-      
-      console.log('Sample products inserted successfully');
+    } else {
+      console.log(`Found ${count} existing products`);
     }
   } catch (error) {
-    console.error('Error inserting sample products:', error);
+    console.error('Error in checkAndInsertSampleProducts:', error);
   }
+};
+
+// Export a dummy db object for backward compatibility
+// This should be removed once all references to the old SQLite db are updated
+const db = {
+  openDatabaseSync: () => null,
+  execAsync: async () => {},
+  runAsync: async () => ({ lastInsertRowId: 0, changes: 0 }),
+  getFirstAsync: async () => null,
+  getAllAsync: async () => [],
 };
 
 export default db;
