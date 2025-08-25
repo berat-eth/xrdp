@@ -15,6 +15,9 @@ import { OrderScreen } from '../views/OrderScreen';
 import { LoginScreen } from '../views/LoginScreen';
 import { RegisterScreen } from '../views/RegisterScreen';
 
+// Components
+import { HamburgerMenu } from '../components/HamburgerMenu';
+
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 const AuthStack = createStackNavigator();
@@ -35,6 +38,22 @@ const AuthNavigator = () => {
 
 // Stack Navigator for Home
 const HomeStack = () => {
+  const [categories, setCategories] = React.useState<string[]>([]);
+
+  React.useEffect(() => {
+    loadCategories();
+  }, []);
+
+  const loadCategories = async () => {
+    try {
+      const { ProductController } = await import('../controllers/ProductController');
+      const cats = await ProductController.getCategories();
+      setCategories(cats);
+    } catch (error) {
+      console.error('Error loading categories:', error);
+    }
+  };
+
   return (
     <Stack.Navigator
       screenOptions={{
@@ -50,7 +69,12 @@ const HomeStack = () => {
       <Stack.Screen 
         name="HomeMain" 
         component={HomeScreen} 
-        options={{ title: 'Outdoor Store' }}
+        options={({ navigation }) => ({
+          title: 'Outdoor Store',
+          headerLeft: () => (
+            <HamburgerMenu navigation={navigation} categories={categories} />
+          ),
+        })}
       />
       <Stack.Screen 
         name="ProductList" 
@@ -89,6 +113,34 @@ const CartStack = () => {
         name="Order" 
         component={OrderScreen}
         options={{ title: 'Sipariş' }}
+      />
+    </Stack.Navigator>
+  );
+};
+
+// Stack Navigator for Products
+const ProductsStack = () => {
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerStyle: {
+          backgroundColor: '#2E7D32',
+        },
+        headerTintColor: '#fff',
+        headerTitleStyle: {
+          fontWeight: 'bold',
+        },
+      }}
+    >
+      <Stack.Screen 
+        name="ProductsMain" 
+        component={ProductListScreen} 
+        options={{ title: 'Tüm Ürünler' }}
+      />
+      <Stack.Screen 
+        name="ProductDetail" 
+        component={ProductDetailScreen}
+        options={{ title: 'Ürün Detayı' }}
       />
     </Stack.Navigator>
   );
@@ -151,21 +203,12 @@ const TabNavigator = () => {
       />
       <Tab.Screen
         name="Products"
-        component={ProductListScreen}
+        component={ProductsStack}
         options={{
           tabBarLabel: 'Ürünler',
           tabBarIcon: ({ color, size }) => (
             <Text style={{ fontSize: size, color }}>🛍️</Text>
           ),
-          headerShown: true,
-          headerStyle: {
-            backgroundColor: '#2E7D32',
-          },
-          headerTintColor: '#fff',
-          headerTitleStyle: {
-            fontWeight: 'bold',
-          },
-          title: 'Tüm Ürünler',
         }}
       />
       <Tab.Screen

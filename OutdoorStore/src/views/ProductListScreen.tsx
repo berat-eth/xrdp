@@ -33,6 +33,10 @@ export const ProductListScreen: React.FC<ProductListScreenProps> = ({
     loadProducts();
   }, [category, initialSearchQuery]);
 
+  useEffect(() => {
+    navigation.setOptions({ title });
+  }, [title, navigation]);
+
   const loadProducts = async () => {
     try {
       setLoading(true);
