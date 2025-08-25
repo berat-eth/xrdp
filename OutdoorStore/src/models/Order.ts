@@ -1,141 +1,210 @@
-import db from '../utils/database';
-import { Order, OrderItem, OrderStatus } from '../utils/types';
+import { supabase } from '../utils/supabase';
+import { Order, OrderItem, OrderStatus, CartItem } from '../utils/types';
 import { CartModel } from './Cart';
 import { ProductModel } from './Product';
 
 export class OrderModel {
   static async create(
-    userId: number, 
-    shippingAddress: string, 
+    userId: string,
+    shippingAddress: string,
     paymentMethod: string
   ): Promise<number | null> {
     try {
-      // Sepet öğelerini al
-      const cartItems = await CartModel.getCartItems(userId);
-      if (cartItems.length === 0) return null;
+      // Get cart items
+      const cartItems = await CartModel.getByUserId(userId);
+      if (cartItems.length === 0) {
+        console.error('Cart is empty');
+        return null;
+      }
 
-      // Toplam tutarı hesapla
-      const totalAmount = await CartModel.getCartTotal(userId);
+      // Calculate total amount
+      let totalAmount = 0;
+      const orderItems: Omit<OrderItem, 'id' | 'orderId'>[] = [];
 
-      // Siparişi oluştur
-      const orderResult = await db.runAsync(
-        `INSERT INTO orders (userId, totalAmount, status, shippingAddress, paymentMethod) 
-         VALUES (?, ?, ?, ?, ?)`,
-        [userId, totalAmount, OrderStatus.PENDING, shippingAddress, paymentMethod]
-      );
-
-      const orderId = orderResult.lastInsertRowId;
-
-      // Sipariş öğelerini ekle
       for (const item of cartItems) {
         if (item.product) {
-          await db.runAsync(
-            `INSERT INTO order_items (orderId, productId, quantity, price) 
-             VALUES (?, ?, ?, ?)`,
-            [orderId, item.productId, item.quantity, item.product.price]
-          );
+          totalAmount += item.product.price * item.quantity;
+          orderItems.push({
+            productId: item.productId,
+            quantity: item.quantity,
+            price: item.product.price
+          });
 
-          // Stok güncelle
-          await ProductModel.updateStock(item.productId, item.quantity);
+          // Update product stock
+          const stockUpdated = await ProductModel.updateStock(item.productId, item.quantity);
+          if (!stockUpdated) {
+            throw new Error(`Failed to update stock for product ${item.productId}`);
+          }
         }
       }
 
-      // Sepeti temizle
-      await CartModel.clearCart(userId);
+      // Create order
+      const { data: order, error: orderError } = await supabase
+        .from('orders')
+        .insert({
+          user_id: userId,
+          total_amount: totalAmount,
+          status: OrderStatus.PENDING,
+          shipping_address: shippingAddress,
+          payment_method: paymentMethod
+        })
+        .select('id')
+        .single();
 
-      return orderId;
+      if (orderError || !order) {
+        throw orderError || new Error('Failed to create order');
+      }
+
+      // Create order items
+      const orderItemsData = orderItems.map(item => ({
+        order_id: order.id,
+        product_id: item.productId,
+        quantity: item.quantity,
+        price: item.price
+      }));
+
+      const { error: itemsError } = await supabase
+        .from('order_items')
+        .insert(orderItemsData);
+
+      if (itemsError) {
+        // Rollback order if items creation fails
+        await supabase.from('orders').delete().eq('id', order.id);
+        throw itemsError;
+      }
+
+      // Clear cart
+      await CartModel.clear(userId);
+
+      return order.id;
     } catch (error) {
       console.error('Error creating order:', error);
       return null;
     }
   }
 
-  static async getByUserId(userId: number): Promise<Order[]> {
+  static async getByUserId(userId: string): Promise<Order[]> {
     try {
-      const orders = await db.getAllAsync<Order>(
-        'SELECT * FROM orders WHERE userId = ? ORDER BY createdAt DESC',
-        [userId]
-      );
+      const { data, error } = await supabase
+        .from('orders')
+        .select(`
+          id,
+          user_id,
+          total_amount,
+          status,
+          shipping_address,
+          payment_method,
+          created_at,
+          order_items (
+            id,
+            order_id,
+            product_id,
+            quantity,
+            price,
+            products (
+              id,
+              name,
+              description,
+              price,
+              category,
+              image,
+              stock,
+              brand,
+              rating,
+              review_count
+            )
+          )
+        `)
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
 
-      if (!orders) return [];
+      if (error) throw error;
 
-      // Her sipariş için öğeleri al
-      for (const order of orders) {
-        const items = await db.getAllAsync<OrderItem & { name: string; image: string }>(
-          `SELECT oi.*, p.name, p.image 
-           FROM order_items oi 
-           JOIN products p ON oi.productId = p.id 
-           WHERE oi.orderId = ?`,
-          [order.id]
-        );
-
-        order.items = items?.map(item => ({
+      // Transform the data to match our Order interface
+      return (data || []).map(order => ({
+        id: order.id,
+        userId: order.user_id,
+        totalAmount: order.total_amount,
+        status: order.status as OrderStatus,
+        shippingAddress: order.shipping_address,
+        paymentMethod: order.payment_method,
+        createdAt: order.created_at,
+        items: (order.order_items || []).map((item: any) => ({
           id: item.id,
-          orderId: item.orderId,
-          productId: item.productId,
+          orderId: item.order_id,
+          productId: item.product_id,
           quantity: item.quantity,
           price: item.price,
-          product: {
-            id: item.productId,
-            name: item.name,
-            description: '',
-            price: item.price,
-            category: '',
-            image: item.image,
-            stock: 0,
-            brand: '',
-            rating: 0,
-            reviewCount: 0
-          }
-        })) || [];
-      }
-
-      return orders;
+          product: item.products ? {
+            ...item.products,
+            reviewCount: item.products.review_count
+          } : undefined
+        }))
+      }));
     } catch (error) {
-      console.error('Error getting user orders:', error);
+      console.error('Error getting orders by user id:', error);
       return [];
     }
   }
 
   static async getById(id: number): Promise<Order | null> {
     try {
-      const order = await db.getFirstAsync<Order>(
-        'SELECT * FROM orders WHERE id = ?',
-        [id]
-      );
+      const { data, error } = await supabase
+        .from('orders')
+        .select(`
+          id,
+          user_id,
+          total_amount,
+          status,
+          shipping_address,
+          payment_method,
+          created_at,
+          order_items (
+            id,
+            order_id,
+            product_id,
+            quantity,
+            price,
+            products (
+              id,
+              name,
+              description,
+              price,
+              category,
+              image,
+              stock,
+              brand,
+              rating,
+              review_count
+            )
+          )
+        `)
+        .eq('id', id)
+        .single();
 
-      if (!order) return null;
+      if (error || !data) return null;
 
-      // Sipariş öğelerini al
-      const items = await db.getAllAsync<OrderItem & { name: string; image: string; brand: string }>(
-        `SELECT oi.*, p.name, p.image, p.brand 
-         FROM order_items oi 
-         JOIN products p ON oi.productId = p.id 
-         WHERE oi.orderId = ?`,
-        [order.id]
-      );
-
-      order.items = items?.map(item => ({
-        id: item.id,
-        orderId: item.orderId,
-        productId: item.productId,
-        quantity: item.quantity,
-        price: item.price,
-        product: {
-          id: item.productId,
-          name: item.name,
-          description: '',
+      // Transform the data to match our Order interface
+      return {
+        id: data.id,
+        userId: data.user_id,
+        totalAmount: data.total_amount,
+        status: data.status as OrderStatus,
+        shippingAddress: data.shipping_address,
+        paymentMethod: data.payment_method,
+        createdAt: data.created_at,
+        items: (data.order_items || []).map((item: any) => ({
+          id: item.id,
+          orderId: item.order_id,
+          productId: item.product_id,
+          quantity: item.quantity,
           price: item.price,
-          category: '',
-          image: item.image,
-          stock: 0,
-          brand: item.brand,
-          rating: 0,
-          reviewCount: 0
-        }
-      })) || [];
-
-      return order;
+          product: item.products ? {
+            ...item.products,
+            reviewCount: item.products.review_count
+          } : undefined
+        }))
+      };
     } catch (error) {
       console.error('Error getting order by id:', error);
       return null;
@@ -144,10 +213,12 @@ export class OrderModel {
 
   static async updateStatus(id: number, status: OrderStatus): Promise<boolean> {
     try {
-      await db.runAsync(
-        'UPDATE orders SET status = ? WHERE id = ?',
-        [status, id]
-      );
+      const { error } = await supabase
+        .from('orders')
+        .update({ status })
+        .eq('id', id);
+
+      if (error) throw error;
       return true;
     } catch (error) {
       console.error('Error updating order status:', error);
@@ -157,21 +228,32 @@ export class OrderModel {
 
   static async cancel(id: number): Promise<boolean> {
     try {
+      // Get order details first
       const order = await this.getById(id);
       if (!order || order.status !== OrderStatus.PENDING) {
+        console.error('Order cannot be cancelled');
         return false;
       }
 
-      // Stokları geri yükle
+      // Update order status
+      const statusUpdated = await this.updateStatus(id, OrderStatus.CANCELLED);
+      if (!statusUpdated) return false;
+
+      // Restore product stock
       for (const item of order.items) {
-        await db.runAsync(
-          'UPDATE products SET stock = stock + ? WHERE id = ?',
-          [item.quantity, item.productId]
-        );
+        if (item.product) {
+          const { error } = await supabase
+            .from('products')
+            .update({ stock: item.product.stock + item.quantity })
+            .eq('id', item.productId);
+
+          if (error) {
+            console.error(`Failed to restore stock for product ${item.productId}:`, error);
+          }
+        }
       }
 
-      // Sipariş durumunu güncelle
-      return await this.updateStatus(id, OrderStatus.CANCELLED);
+      return true;
     } catch (error) {
       console.error('Error cancelling order:', error);
       return false;
